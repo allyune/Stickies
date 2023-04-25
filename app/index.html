@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Stickies</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="style.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="app.js"></script>
+  </head>
+  <body>
+    <main>
+      <div id="main-container">
+        <div id="stickies" x-data="stickies">
+            <template x-for="stickie in stickieIds">
+                <div class="stickie" x-bind:id="`stickie-${stickieIds.indexOf(stickie)+1}`" 
+                                     x-bind:style="{ backgroundColor: colors[stickie.color]}"
+                                     @keyup.shift="changeColor(stickie)">
+                    <textarea x-model="stickie.content" 
+                              x-bind:id="`text-${stickieIds.indexOf(stickie)+1}`"
+                              @keydown="checkChars($event, stickie)"
+                              @input="checkChars($event, stickie)">
+                    </textarea>
+                </div>
+            </template>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
