@@ -23,7 +23,7 @@ app.get('/', function(req, res) {
     res.sendFile(__dirname + '/app/index.html');
   });
   
-// app.get('/:uuid', async function(req, res) {
+app.get('/:uuid', async function(req, res) {
 //   let allowedPaths = await getAllowedUrls();
 //   let currPath = req.path
 //   if (allowedPaths.includes(currPath.substring(1))) {
@@ -31,7 +31,8 @@ app.get('/', function(req, res) {
 //     } else {
 //       res.status(404).send('Not found'); 
 //     } 
-//   });
+    res.sendFile(__dirname + '/app/index.html');    
+  });
   
 
 app.listen(process.env.PORT, () => {

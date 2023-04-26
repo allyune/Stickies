@@ -1,9 +1,7 @@
 document.addEventListener('alpine:init', () => {
     Alpine.data('stickies', () => ({
         maxChars: 10,
-        stickieIds: [{id:2, color:0, content:""},
-                     {id:3, color:0, content:""},
-                     {id:4, color:0, content:""}],
+        stickieIds: [],
         currBoard: "",
         colors: [
             "#FFD280",
@@ -29,18 +27,20 @@ document.addEventListener('alpine:init', () => {
           ],
         async init() {
           const path = window.location.pathname.substring(1);
-          if (path == "") {
+          console.log(path)
+          if (path != "") {
             try {
-            //   let response = await fetch('/api/load/' + path)
-            //   if (!response.ok) throw response.status;
-            //   var loaded = await response.json()
-            //   this.stickieIds = loaded.stickies
+              let response = await fetch('/api/load/' + path)
+              if (!response.ok) throw response.status;
+              var loaded = await response.json()
+              this.stickieIds = loaded
             
             }
              catch (e) {
               console.log(e)
             }
           } else {
+            console.log("init new board")
             try {
                 await fetch('/api/init/', {
                     method: 'POST'
@@ -64,18 +64,6 @@ document.addEventListener('alpine:init', () => {
                   break;
                 }
               }
-            //   try {
-            //     const response = await fetch('/api/change-color/', {
-            //     method: 'POST',
-            //     headers: {
-            //       'Content-Type': 'application/json',
-            //     },
-            //     body: JSON.stringify({sticky: id, color: newColorIndex})
-            //   })}
-            //   catch (e) {
-            //     console.log(e)
-            //   }
-            //   this.stickieIds = response
             },
              checkChars(event, sticky) {
                 let charCount = sticky.content.split(" ").join("").split("").length;
@@ -84,6 +72,32 @@ document.addEventListener('alpine:init', () => {
                     event.preventDefault();
                   }
                 }
-              }
+              },
+            async addStickie(direction) {
+                try {
+                    newStickie = await fetch('/api/stickie/add/', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({board: this.currBoard})
+                      })
+                } 
+                catch (e) {
+                    console.log(e)
+                }
+                if (direction === "end") {
+                    this.stickieIds.push(newStickie)
+                } else {
+                    this.stickieIds.unshift(newStickie)
+                }
+                
+             }
 
         }))})   
+
+    window.addEventListener('keydown', function(event) {
+        if (event.key === 'Tab') {
+            stickies.addStickie("end")
+            }
+        });
