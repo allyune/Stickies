@@ -10,11 +10,16 @@
   <body>
     <main>
       <div id="main-container">
-        <div id="stickies" x-data="stickies">
+        <div id="stickies" x-data="stickies" x-init="window.addEventListener('keydown', event => {
+                                                    if (event.key === 'Tab' && !event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey) {
+                                                        addStickie('end')}
+                                                    else if (event.shiftKey && event.key === 'Tab') {
+                                                        addStickie('front')}});">
             <template x-for="stickie in stickieIds">
                 <div class="stickie" x-bind:id="`stickie-${stickieIds.indexOf(stickie)+1}`" 
                                      x-bind:style="{ backgroundColor: colors[stickie.color]}"
-                                     @keyup.shift="changeColor(stickie)">
+                                     @keyup.shift="changeColor(stickie)"
+                                     @keydown@shift.backspace="deleteStickie(stickie)">
                     <textarea x-model="stickie.content" 
                               x-bind:id="`text-${stickieIds.indexOf(stickie)+1}`"
                               @keydown="checkChars($event, stickie)"

@@ -1,6 +1,7 @@
 document.addEventListener('alpine:init', () => {
     Alpine.data('stickies', () => ({
-        maxChars: 10,
+        maxChars: 100,
+        changesMade: false,
         stickieIds: [],
         currBoard: "",
         colors: [
@@ -27,55 +28,55 @@ document.addEventListener('alpine:init', () => {
           ],
         async init() {
           const path = window.location.pathname.substring(1);
-          console.log(path)
-          if (path != "") {
-            try {
-              let response = await fetch('/api/load/' + path)
+          let response = await fetch('/api/board/load/' + path)
               if (!response.ok) throw response.status;
               var loaded = await response.json()
-              this.stickieIds = loaded
-            
-            }
-             catch (e) {
-              console.log(e)
-            }
-          } else {
-            console.log("init new board")
-            try {
-                await fetch('/api/init/', {
-                    method: 'POST'
-                  });
-            } 
-            catch (e) {
-                console.log(e)
-            }
-          }
+              this.stickieIds = loaded;
+              this.currBoard = path;
+          setInterval(() => {
+            this.saveBoard();
+          }, 3000);
         },
         async saveBoard() {
-        //placeholder
-        return 0;
+          if (this.changesMade == true) {
+          try {
+              await fetch('/api/board/save/', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({stickies: this.stickieIds})
+            })
+            this.changesMade = false;
+            console.log("Board saved")
+          }
+          catch(e) {
+            console.log(e)
+          }
+        }
         },
-         changeColor(stickie) {            
+         changeColor(stickie) { 
               let newColorIndex = stickie.color == this.colors.length - 1 ? 0 : stickie.color + 1;
-              console.log(newColorIndex)
               for (let i = 0; i < this.stickieIds.length; i++) {
                 if (this.stickieIds[i].id === stickie.id) {
                     this.stickieIds[i].color = newColorIndex;
+                    this.changesMade = true;
                   break;
                 }
               }
             },
              checkChars(event, sticky) {
+                this.changesMade = true;
                 let charCount = sticky.content.split(" ").join("").split("").length;
                 if (charCount >= this.maxChars) {
-                  if (event.key !== "Backspace" && event.key !== "Delete" && !event.ctrlKey && !event.metaKey && event.key !== "ArrowLeft" && event.key !== "ArrowRight" && event.key !== "ArrowUp" && event.key !== "ArrowDown") {
+                  if (event.key !== "Backspace" && event.key !== "Delete" && !event.ctrlKey && !event.metaKey && event.key !== "ArrowLeft" && event.key !== "ArrowRight" && event.key !== "ArrowUp") {
                     event.preventDefault();
                   }
                 }
               },
             async addStickie(direction) {
                 try {
-                    newStickie = await fetch('/api/stickie/add/', {
+                    response = await fetch('/api/stickie/add/', {
                         method: 'POST',
                         headers: {
                           'Content-Type': 'application/json',
@@ -86,18 +87,34 @@ document.addEventListener('alpine:init', () => {
                 catch (e) {
                     console.log(e)
                 }
+                let newStickie = await response.json()
+                console.log(newStickie)
                 if (direction === "end") {
                     this.stickieIds.push(newStickie)
                 } else {
                     this.stickieIds.unshift(newStickie)
                 }
-                
-             }
+                this.stickieIds.forEach(stickie => {
+                  stickie.position = this.stickieIds.indexOf(stickie);
+                })
+                this.changesMade = true;
+             },
+          async deleteStickie(stickie) {
+            try {
+               await fetch('/api/stickie/delete/' + stickie.id, {
+                method: 'DELETE'
+              })
+              this.stickieIds.splice(this.stickieIds.indexOf(stickie), 1)
+              this.stickieIds.forEach(stickie => {
+                  stickie.position = this.stickieIds.indexOf(stickie);
+              })
+              this.changesMade = true;
+            } 
+            catch (e) {
+              console.log(e)
+            } 
+          } 
 
         }))})   
 
-    window.addEventListener('keydown', function(event) {
-        if (event.key === 'Tab') {
-            stickies.addStickie("end")
-            }
-        });
+  
