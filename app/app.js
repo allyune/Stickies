@@ -32,6 +32,7 @@ document.addEventListener('alpine:init', () => {
               if (!response.ok) throw response.status;
               var loaded = await response.json()
               this.stickieIds = loaded;
+              this.focusStickie()
               this.currBoard = path;
           setInterval(() => {
             this.saveBoard();
@@ -98,6 +99,7 @@ document.addEventListener('alpine:init', () => {
                   stickie.position = this.stickieIds.indexOf(stickie);
                 })
                 this.changesMade = true;
+                this.focusStickie(newStickie)
              },
           async deleteStickie(stickie) {
             try {
@@ -105,6 +107,7 @@ document.addEventListener('alpine:init', () => {
                 method: 'DELETE'
               })
               this.stickieIds.splice(this.stickieIds.indexOf(stickie), 1)
+              this.focusStickie()
               this.stickieIds.forEach(stickie => {
                   stickie.position = this.stickieIds.indexOf(stickie);
               })
@@ -113,6 +116,17 @@ document.addEventListener('alpine:init', () => {
             catch (e) {
               console.log(e)
             } 
+          },
+          focusStickie(latestStickie = false) {
+            if (!latestStickie) {
+              latestStickie = this.stickieIds.reduce((maxStickie, currentStickie) => {
+                return (currentStickie.id > maxStickie.id) ? currentStickie : maxStickie;
+              }, this.stickieIds[0]);
+            }
+            let latestStickieId = `stickie-${this.stickieIds.indexOf(latestStickie)+1}`
+            console.log(latestStickieId)
+            let latestStickieHtml = document.getElementById(latestStickieId)
+            latestStickieHtml.focus()
           } 
 
         }))})   

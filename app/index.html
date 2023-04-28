@@ -16,10 +16,10 @@
                                                     else if (event.shiftKey && event.key === 'Tab') {
                                                         addStickie('front')}});">
             <template x-for="stickie in stickieIds">
-                <div class="stickie" x-bind:id="`stickie-${stickieIds.indexOf(stickie)+1}`" 
+                <div class="stickie" x-bind:id="`stickie-${stickie.id}`"
                                      x-bind:style="{ backgroundColor: colors[stickie.color]}"
                                      @keyup.shift="changeColor(stickie)"
-                                     @keydown@shift.backspace="deleteStickie(stickie)">
+                                     @keydown.backspace="if (stickie.content.length === 0) {deleteStickie(stickie) }">
                     <textarea x-model="stickie.content" 
                               x-bind:id="`text-${stickieIds.indexOf(stickie)+1}`"
                               @keydown="checkChars($event, stickie)"
