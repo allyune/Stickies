@@ -10,24 +10,25 @@
   <body>
     <main>
       <div id="main-container">
-        <div id="stickies" x-data="stickies" x-init="window.addEventListener('keydown', event => {
-                                                    if (event.key === 'Tab' && !event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey) {
-                                                        addStickie('end')}
-                                                    else if (event.shiftKey && event.key === 'Tab') {
-                                                        addStickie('front')}});">
-            <template x-for="stickie in stickieIds">
-                <div class="stickie" x-bind:id="`stickie-${stickie.id}`"
-                                     x-bind:style="{ backgroundColor: colors[stickie.color]}"
-                                     @keyup.shift="changeColor(stickie)"
-                                     @keydown.backspace="if (stickie.content.length === 0) {deleteStickie(stickie) }">
-                    <textarea x-model="stickie.content" 
-                              x-bind:id="`text-${stickieIds.indexOf(stickie)+1}`"
-                              @keydown="checkChars($event, stickie)"
-                              @input="checkChars($event, stickie)">
-                    </textarea>
-                </div>
-            </template>
-          </div>
+        <div x-ref="stickieContainer" id="stickies" x-data="stickies">
+        <template x-for="(stickie, index) in stickieIds" :key="stickie.id">
+            <div class="stickie" 
+                x-bind:id="`stickie-${index+1}`"
+                x-bind:style="{ backgroundColor: colors[stickie.color]}"
+                @keyup.shift="changeColor(stickie)"
+                @keydown.backspace="if (stickie.content.length === 0) {deleteStickie(stickie) }">
+                <textarea x-ref="stickieTexta"
+                        x-model="stickie.content" 
+                        @keydown.tab.prevent="addStickie('end')"
+                        @keydown="checkChars($event, stickie)"
+                        @input="checkChars($event, stickie)">
+                </textarea>
+            </div>
+        </template>
+    </div>
+    
+        </div>
+        
         </div>
       </div>
     </main>
