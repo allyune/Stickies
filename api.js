@@ -24,7 +24,6 @@ router.post('/board/save', async (req, res) => {
     }
     })
 
-
   router.post('/stickie/add', async (req, res) => {
     try {
             let newStickie = await db.query("INSERT INTO stickies (board) VALUES ($1) RETURNING id, color, content, position", [req.body.board]);
@@ -37,12 +36,13 @@ router.post('/board/save', async (req, res) => {
 
   router.delete('/stickie/delete/:id', async (req, res) => {
     try {
-              await db.query('DELETE FROM stickies WHERE id = $1', [req.params.id]);
-              res.status(200).send();
-          } catch (err) {
-              console.error(err);
-              res.status(400).send(err.message);
-          }
+      await db.query('DELETE FROM stickies WHERE id = $1', [req.params.id]);
+      res.status(200).send();
+    } 
+    catch (err) {
+      console.error(err);
+      res.status(400).send(err.message);
+    }
   })
 
   // router.post('/init', async (req, res) => {
