@@ -15,7 +15,7 @@
             <div class="stickie" 
                 x-bind:id="`stickie-${index+1}`"
                 x-bind:style="{ backgroundColor: colors[stickie.color]}"
-                @keydown.alt="if (event.key !== 'Tab') {changeColor(stickie)}"
+                @keydown.alt="changeColor(stickie)"
                 @keydown.backspace="if (stickie.content.length === 0) {deleteStickie(stickie) }">
                 <textarea
                         x-model="stickie.content" 

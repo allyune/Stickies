@@ -44,18 +44,6 @@ router.post('/board/save', async (req, res) => {
       res.status(400).send(err.message);
     }
   })
-
-  // router.post('/init', async (req, res) => {
-  //     try {
-  //         const uuid = crypto.randomUUID();
-  //         await db.query('INSERT INTO boards (uuid) VALUES ($1)', [uuid]);
-  //         await db.query('INSERT INTO stickies (board, content) VALUES ($1, $2)', [uuid, ""]);
-  //         return res.redirect(301, `/{uuid}`)
-  //     } catch (err) {
-  //         console.error(err);
-  //         res.status(400).send(err.message);
-  //     }
-  // });
   
       
 module.exports = router;

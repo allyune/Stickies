@@ -77,10 +77,10 @@ app.get('/delete/:uuid', async (req, res) => {
       if (existingBoards.filter(row => row.uuid === req.params.uuid).length > 0) {
         await db.query('DELETE FROM stickies WHERE board = $1', [req.params.uuid])
         await db.query('DELETE FROM boards WHERE uuid = $1', [req.params.uuid])
+        res.status(200).send(`Board ${req.params.uuid} has beeen deleted.`)
       } else {
         res.send(`Board ${req.params.uuid} does not exist.`)
       }
-      res.redirect(302, '/');
     } 
     catch (err) {
       console.error(err);
