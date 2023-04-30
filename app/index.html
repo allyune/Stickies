@@ -15,11 +15,12 @@
             <div class="stickie" 
                 x-bind:id="`stickie-${index+1}`"
                 x-bind:style="{ backgroundColor: colors[stickie.color]}"
-                @keyup.shift="changeColor(stickie)"
+                @keydown.alt="if (event.key !== 'Tab') {changeColor(stickie)}"
                 @keydown.backspace="if (stickie.content.length === 0) {deleteStickie(stickie) }">
-                <textarea x-ref="stickieTexta"
+                <textarea
                         x-model="stickie.content" 
-                        @keydown.tab.prevent="addStickie('end')"
+                        @keydown.shift.tab.prevent="if (event.shiftKey && event.key === 'Tab') {addStickieFront(stickie)}"
+                        @keydown.tab.prevent="if (event.key === 'Tab' && !event.shiftKey) {addStickieEnd(stickie)}"
                         @keydown="checkChars($event, stickie)"
                         @input="checkChars($event, stickie)">
                 </textarea>

@@ -1,6 +1,7 @@
 document.addEventListener('alpine:init', () => {
     Alpine.data('stickies', () => ({
         maxChars: 100,
+        maxStickies: 8,
         changesMade: false,
         stickieIds: [],
         currBoard: "",
@@ -34,7 +35,11 @@ document.addEventListener('alpine:init', () => {
           this.stickieIds = loaded;
           this.currBoard = path;
           this.$nextTick(() => {
-            this.setFocus();
+            let maxId = Math.max(...this.stickieIds.map(stickie => stickie.id));
+            console.log(maxId);
+            let maxIdIndex = this.stickieIds.indexOf(this.stickieIds.filter(stickie => stickie.id === maxId)[0]);
+            console.log(maxIdIndex)
+            this.setFocus(maxIdIndex);
           })
               
           setInterval(() => {
@@ -69,49 +74,65 @@ document.addEventListener('alpine:init', () => {
                 }
               }
             },
-            checkChars(event, sticky) {
-                this.changesMade = true;
-                let charCount = sticky.content.split(" ").join("").split("").length;
-                if (charCount >= this.maxChars) {
-                  if (event.key !== "Backspace" && event.key !== "Delete" && !event.ctrlKey && !event.metaKey && event.key !== "ArrowLeft" && event.key !== "ArrowRight" && event.key !== "ArrowUp") {
-                    event.preventDefault();
-                  }
-                }
+        checkChars(event, sticky) {
+          this.changesMade = true;
+          let charCount = sticky.content.split(" ").join("").split("").length;
+          if (charCount >= this.maxChars) {
+            if (event.key !== "Backspace" && event.key !== "Delete" && !event.ctrlKey && !event.metaKey && event.key !== "ArrowLeft" && event.key !== "ArrowRight" && event.key !== "ArrowUp") {
+                event.preventDefault();
+              }
+            }
+          },
+        setFocus(stickieIndex) {
+          let newStickieIndex = this.stickieIds.length - 1;
+          let StickieDiv = this.$refs.stickieContainer.querySelectorAll('div')[stickieIndex];
+          let StickieTextarea = StickieDiv.querySelector('textarea');
+          StickieTextarea.focus()
+          },
+        addStickieFront(stickie) {
+          if (this.stickieIds.length === this.maxStickies) {
+            alert("Maximum of " + this.maxStickies + " stickies reached")
+          } else if (this.stickieIds.indexOf(stickie) === 0) {
+              this.addStickie('front')
+            }
+          },
+        addStickieEnd(stickie) {
+          if (this.stickieIds.length === this.maxStickies) {
+            alert("Maximum of " + this.maxStickies + " stickies reached")
+          } else if (this.stickieIds.indexOf(stickie) === this.stickieIds.length - 1) {
+              this.addStickie('end')
+            }
+          },
+        async addStickie(direction) {
+          try {
+              response = await fetch('/api/stickie/add/', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
               },
-            setFocus() {
-              let newStickieIndex = this.stickieIds.length - 1;
-              let newStickieDiv = this.$refs.stickieContainer.querySelectorAll('div')[newStickieIndex];
-              let newStickieTextarea = newStickieDiv.querySelector('textarea');
-              newStickieTextarea.focus()
-            },
-            async addStickie(direction) {
-                try {
-                    response = await fetch('/api/stickie/add/', {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({board: this.currBoard})
-                      })
-                } 
-                catch (e) {
-                    console.log(e)
-                }
-                let newStickie = await response.json()
-                if (direction === "end") {
-                    this.stickieIds.push(newStickie)
-                } else {
-                    this.stickieIds.unshift(newStickie)
-                }
-                this.stickieIds.forEach(stickie => {
-                  stickie.position = this.stickieIds.indexOf(stickie);
-                })
-                this.changesMade = true;
-                this.$nextTick(() => {
-                this.setFocus();
-              })},
+              body: JSON.stringify({board: this.currBoard})
+              })
+            } 
+          catch (e) {
+            console.log(e)
+          }
+          let newStickie = await response.json()
+          if (direction === "end") {
+            this.stickieIds.push(newStickie)
+          } else {
+            this.stickieIds.unshift(newStickie)
+          }
+          this.stickieIds.forEach(stickie => {
+            stickie.position = this.stickieIds.indexOf(stickie);
+          })
+          this.changesMade = true;
+          this.$nextTick(() => {
+            this.setFocus(this.stickieIds.indexOf(newStickie));
+          })},
 
-          async deleteStickie(stickie) {
+        async deleteStickie(stickie) {
+          let deletedStickieIndex = this.stickieIds.indexOf(stickie)
+          let NewFocusIndex = deletedStickieIndex === 0 ? 1 : deletedStickieIndex - 1;
             try {
                await fetch('/api/stickie/delete/' + stickie.id, {
                 method: 'DELETE'
@@ -121,27 +142,12 @@ document.addEventListener('alpine:init', () => {
                   stickie.position = this.stickieIds.indexOf(stickie);
               })
               this.changesMade = true;
-              this.setFocus()
+              this.setFocus(NewFocusIndex)
             } 
             catch (e) {
               console.log(e)
             } 
           }
-          // focusStickie(latestStickie = false) {
-          //   console.log(latestStickie)
-          //   if (!latestStickie) {
-          //     latestStickie = this.stickieIds.reduce((maxStickie, currentStickie) => {
-          //       return (currentStickie.id > maxStickie.id) ? currentStickie : maxStickie;
-          //     }, this.stickieIds[0]);
-          //   }
-          //   console.log(latestStickie)
-          //   let latestStickieId = `text-${this.stickieIds.indexOf(latestStickie)+1}`
-          //   console.log(latestStickieId)
-          //   let latestStickieHtml = document.getElementById(latestStickieId)
-          //   console.log(latestStickieHtml)
-          //   latestStickieHtml.focus()
-
-          // } 
 
         }))})
         
