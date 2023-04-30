@@ -148,7 +148,6 @@ document.addEventListener('alpine:init', () => {
               console.log(e)
             } 
           }
-
         }))})
         
     

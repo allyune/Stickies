@@ -1,3 +1,4 @@
+const cookies = require('./cookies.js');
 require('dotenv').config();
 const express = require('express');
 const crypto = require('crypto');
@@ -5,18 +6,47 @@ const db = require('./postgres');
 const app = express();
 const api = require('./api');
 const path = require('path');
+const cookieParser = require('cookie-parser');
 
 app.use(express.json());
-
+app.use(cookieParser());
 app.use('/api', api);
 
-// Serve static files in the /app folder
-
+function generateUniqueId() {
+    var currentDate = new Date();
+    var timestamp = currentDate.getTime();
+    var randomString = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    return timestamp + "_" + randomString;
+  }
 
 app.get('/', async function(req, res) {
+    let userId = req.cookies['userId'] || '';
+    if (userId.length !== 0) {
+        let response = await db.query('SELECT uuid FROM boards WHERE board_user = $1 ORDER BY created desc LIMIT 1', [userId]);
+        if (response.rows.length !== 0) {
+            let uuid = response.rows[0]['uuid']
+            res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+            res.set('Pragma', 'no-cache');
+            res.set('Expires', '0');
+            res.redirect(302, `/${uuid}`);
+        } else {
+            res.redirect(302, '/new');
+        }
+    } else {
+        res.redirect(302, '/new');
+    }
+})
+
+app.get('/new', async function(req, res) {
+    let userId = req.cookies['userId'] || '';
+    if (userId.length === 0) {
+        let newUserId = generateUniqueId();
+        res.cookie('userId', newUserId);
+        userId = newUserId;
+    }
     try {
         const uuid = crypto.randomUUID();
-        await db.query('INSERT INTO boards (uuid) VALUES ($1)', [uuid]);
+        await db.query('INSERT INTO boards (uuid, board_user, created) VALUES ($1, $2, clock_timestamp())', [uuid, userId]);
         await db.query('INSERT INTO stickies (board, content) VALUES ($1, $2)', [uuid, ""]);
         res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
         res.set('Pragma', 'no-cache');
@@ -35,18 +65,6 @@ app.get('/:uuid', (req, res) => {
     res.sendFile(path.join(__dirname, 'app', 'index.html'));
   });
 
-
-
-// app.get('/:uuid', async function(req, res) {
-// //   let allowedPaths = await getAllowedUrls();
-// //   let currPath = req.path
-// //   if (allowedPaths.includes(currPath.substring(1))) {
-// //     res.sendFile(__dirname + '/app/index.html');
-// //     } else {
-// //       res.status(404).send('Not found'); 
-// //     } 
-//     res.sendFile(__dirname + '/app/index.html');    
-//   });
   
 
 
