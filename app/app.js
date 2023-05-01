@@ -2,7 +2,8 @@ document.addEventListener("alpine:init", () => {
   Alpine.data("stickies", () => ({
     maxChars: 200,
     maxStickies: 8,
-    helpText: "TAB on last stickie = new stickie (end) \n TAB+SHIFT on first stickie - new stickie (front) \n ALT / option = change color \n '/newboard' = create a new board \n '/deleteboard' = delete board",
+    helpText:
+      "TAB on last stickie = new stickie (end) \n TAB+SHIFT on first stickie - new stickie (front) \n ALT / option = change color \n '/newboard' = create a new board \n '/deleteboard' = delete board",
     changesMade: false,
     boardStickies: [],
     currBoard: "",
@@ -28,6 +29,7 @@ document.addEventListener("alpine:init", () => {
       "#F3A3A3",
       "#A3F3B5",
     ],
+    
     async init(retries = 3, interval = 1000) {
       let path = window.location.pathname.substring(1);
       let attempts = 0;
@@ -40,7 +42,9 @@ document.addEventListener("alpine:init", () => {
           this.currBoard = path;
           break;
         } catch (e) {
-          console.log(`Attempt ${attempts + 1} failed: ${e}. Retrying in ${interval}ms`);
+          console.log(
+            `Attempt ${attempts + 1} failed: ${e}. Retrying in ${interval}ms`
+          );
           await new Promise((resolve) => setTimeout(resolve, interval));
           attempts++;
         }
@@ -61,6 +65,7 @@ document.addEventListener("alpine:init", () => {
         this.saveBoard();
       }, 3000);
     },
+
     async saveBoard() {
       if (this.changesMade == true) {
         try {
@@ -78,6 +83,7 @@ document.addEventListener("alpine:init", () => {
         }
       }
     },
+
     changeColor(stickie) {
       let newColorIndex =
         stickie.color == this.colors.length - 1 ? 0 : stickie.color + 1;
@@ -92,6 +98,7 @@ document.addEventListener("alpine:init", () => {
     charCount(stickie) {
       return `${stickie.content.length}/${this.maxChars}`;
     },
+
     checkChars(event, stickie) {
       this.changesMade = true;
       let charCount = stickie.content.split(" ").join("").split("").length;
@@ -109,8 +116,9 @@ document.addEventListener("alpine:init", () => {
         }
       }
     },
+
     async parseCommand(stickie) {
-      let regex = /^\/(help|newboard|deleteboard|myboards)$/;
+      let regex = /^\/(help|newboard|deleteboard)$/;
       const match = stickie.content.match(regex);
       let option = false;
       if (match) {
@@ -132,12 +140,14 @@ document.addEventListener("alpine:init", () => {
           break;
       }
     },
+
     setFocus(stickieIndex) {
       let StickieDiv =
         this.$refs.stickieContainer.querySelectorAll("div")[stickieIndex];
       let StickieTextarea = StickieDiv.querySelector("textarea");
       StickieTextarea.focus();
     },
+
     addStickieFront(stickie) {
       if (this.boardStickies.length === this.maxStickies) {
         alert("Maximum of " + this.maxStickies + " stickies reached");
@@ -145,6 +155,7 @@ document.addEventListener("alpine:init", () => {
         this.addStickie("front");
       }
     },
+
     addStickieEnd(stickie) {
       if (this.boardStickies.length === this.maxStickies) {
         alert("Maximum of " + this.maxStickies + " stickies reached");
@@ -155,6 +166,7 @@ document.addEventListener("alpine:init", () => {
         this.addStickie("end");
       }
     },
+
     async addStickie(direction) {
       try {
         response = await fetch("/api/stickie/add/", {
@@ -209,10 +221,10 @@ document.addEventListener("alpine:init", () => {
         }
       }
     },
+
     async deleteBoard() {
       let path = window.location.pathname.substring(1);
       window.location.pathname = "/delete/" + path;
     },
   }));
 });
-
