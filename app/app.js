@@ -154,7 +154,7 @@ document.addEventListener('alpine:init', () => {
         async deleteStickie(stickie) {
           let deletedStickieIndex = this.boardStickies.indexOf(stickie)
           //last stickie?
-          if (deletedStickieIndex === 0) {
+          if (this.boardStickies.length === 1) {
             if (confirm("Do you want to delete the board?")) {
               this.deleteBoard()
             } else {
@@ -183,4 +183,3 @@ document.addEventListener('alpine:init', () => {
           window.location.pathname = '/delete/' + path
         }
       }))})
-        
