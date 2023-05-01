@@ -106,6 +106,7 @@ app.get('/:uuid', async function(req, res) {
     }
 }) 
 
+module.exports = app;
 
 app.listen(process.env.PORT, () => {
     console.log(`server on port ${process.env.PORT}`)

@@ -28,7 +28,7 @@ document.addEventListener('alpine:init', () => {
             "#A3F3B5"
           ],
         async init() {
-          const path = window.location.pathname.substring(1);
+          let path = window.location.pathname.substring(1);
           let response = await fetch('/api/board/load/' + path)
           if (!response.ok) throw response.status;
           let loaded = await response.json()
@@ -74,15 +74,40 @@ document.addEventListener('alpine:init', () => {
                 }
               }
             },
-        checkChars(event, sticky) {
+        checkChars(event, stickie) {
           this.changesMade = true;
-          let charCount = sticky.content.split(" ").join("").split("").length;
+          let charCount = stickie.content.split(" ").join("").split("").length;
           if (charCount >= this.maxChars) {
             if (event.key !== "Backspace" && event.key !== "Delete" && !event.ctrlKey && !event.metaKey && event.key !== "ArrowLeft" && event.key !== "ArrowRight" && event.key !== "ArrowUp") {
                 event.preventDefault();
               }
             }
           },
+        async parseCommand(stickie) {
+          let regex = /^\/(help|newboard|deleteboard|myboards)$/;
+          const match = stickie.content.match(regex);
+          let option = false;
+          if (match) {
+            option = match[1];
+          } else {
+            option = false;
+          }
+          console.log(option)
+          switch(option) {
+            case "newboard":
+              window.location.pathname = '/new'
+              break;
+            case "deleteboard":
+              let path = window.location.pathname.substring(1);
+              window.location.pathname = '/delete/' + path
+              break;
+            case "help":
+              stickie.content = stickie.content + "\n This is help text";
+            default:
+              break;
+          }
+
+        },
         setFocus(stickieIndex) {
           let StickieDiv = this.$refs.stickieContainer.querySelectorAll('div')[stickieIndex];
           let StickieTextarea = StickieDiv.querySelector('textarea');
@@ -146,15 +171,6 @@ document.addEventListener('alpine:init', () => {
             catch (e) {
               console.log(e)
             } 
-          },
-           openHelp() {
-            var modal = document.getElementById("chat-modal");
-            modal.style.display = "block";
-            modal.onclick = function(event) {
-              if (event.target === modal) {
-                modal.style.display = "none";
-              }
-            }
           }
         }))})
         

@@ -21,7 +21,7 @@
                         x-model="stickie.content" 
                         @keydown.shift.tab.prevent="if (event.shiftKey && event.key === 'Tab') {addStickieFront(stickie)}"
                         @keydown.tab.prevent="if (event.key === 'Tab' && !event.shiftKey) {addStickieEnd(stickie)}"
-                        @keydown="checkChars($event, stickie)"
+                        @keydown="checkChars($event, stickie); parseCommand(stickie)"
                         @input="checkChars($event, stickie)">
                 </textarea>
             </div>
