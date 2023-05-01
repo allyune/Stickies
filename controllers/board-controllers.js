@@ -1,0 +1,86 @@
+const boardModel = require("../models/board-model");
+const crypto = require('crypto');
+const utils = require('../utils/utils')
+
+exports.newBoard = async (req, res) => {
+  let uuid = req.params.uuid || crypto.randomUUID();
+  try {
+    if (!utils.uuidRegex.test(uuid)) {
+      throw new Error('Invalid UUID');
+    }
+    const result = await boardModel.newBoard(uuid);
+    res.status(200).send();
+  } catch (err) {
+    res.status(500).send({ err: err.message });
+  }
+}
+
+exports.saveBoard = async (req, res) => {
+    try {
+        boardModel.saveBoard(req.body.stickies)
+        res.status(200).send();
+    }
+    catch (err) {
+        res.status(500).send({ err: err.message });
+    }
+}
+
+exports.loadBoard = async (req, res) => {
+    try {
+        let board = await boardModel.loadBoard(req.params.uuid)
+        res.json(board)
+    }
+    catch (err) {
+        res.status(500).send({ err: err.message });
+    }
+}
+
+exports.getAllBoards = async(req, res) => {
+    try {
+        let boards = await boardModel.getAllBoards();
+        res.json(boards)
+    } catch {
+        res.status(500).send({ err: err.message });
+    }
+}
+
+exports.createBoard = async (req, res) => {
+    let userId = req.cookies["userId"] || "";
+    if (userId.length === 0) {
+      let newUserId = utils.generateUniqueId();
+      res.cookie("userId", newUserId);
+      userId = newUserId;
+    }
+    try {
+      let uuid = req.params.uuid || crypto.randomUUID();
+      if (utils.uuidRegex.test(uuid)) {
+        await boardModel.newBoard(uuid, userId)
+        res.set("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.set("Expires", "0");
+        res.redirect(302, `/${uuid}`);
+      } else {
+        res.send("Wrong board id format");
+      }
+    } catch (err) {
+      console.error(err);
+      res.status(500).send({ err: err.message });
+    }
+}
+
+exports.deleteBoard = async (req, res) => {
+    try {
+        let existingBoards = await boardModel.getAllBoards();
+        if (
+          existingBoards.filter((row) => row.uuid === req.params.uuid).length > 0
+        ) {
+          await boardModel.deleteBoard(req.params.uuid)
+          console.log(`[Board delete]: ${req.params.uuid}`)
+          res.redirect(302, "/")
+        } else {
+          res.send(`Board ${req.params.uuid} does not exist.`);
+        }
+      } catch (err) {
+        console.error(err);
+        res.status(500).send({ err: err.message });
+      }
+}
