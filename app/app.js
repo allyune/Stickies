@@ -84,7 +84,6 @@ document.addEventListener('alpine:init', () => {
             }
           },
         setFocus(stickieIndex) {
-          let newStickieIndex = this.stickieIds.length - 1;
           let StickieDiv = this.$refs.stickieContainer.querySelectorAll('div')[stickieIndex];
           let StickieTextarea = StickieDiv.querySelector('textarea');
           StickieTextarea.focus()
@@ -147,7 +146,15 @@ document.addEventListener('alpine:init', () => {
             catch (e) {
               console.log(e)
             } 
+          },
+           openHelp() {
+            var modal = document.getElementById("chat-modal");
+            modal.style.display = "block";
+            modal.onclick = function(event) {
+              if (event.target === modal) {
+                modal.style.display = "none";
+              }
+            }
           }
         }))})
         
-    
