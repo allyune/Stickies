@@ -11,7 +11,7 @@
     <main>
       <div id="main-container">
         <div x-ref="stickieContainer" id="stickies" x-data="stickies">
-        <template x-for="(stickie, index) in stickieIds" :key="stickie.id">
+        <template x-for="(stickie, index) in boardStickies" :key="stickie.id">
             <div class="stickie" 
                 x-bind:id="`stickie-${index+1}`"
                 x-bind:style="{ backgroundColor: colors[stickie.color]}"

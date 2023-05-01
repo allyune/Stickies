@@ -3,7 +3,7 @@ document.addEventListener('alpine:init', () => {
         maxChars: 100,
         maxStickies: 8,
         changesMade: false,
-        stickieIds: [],
+        boardStickies: [],
         currBoard: "",
         colors: [
             "#FFD280",
@@ -32,16 +32,15 @@ document.addEventListener('alpine:init', () => {
           let response = await fetch('/api/board/load/' + path)
           if (!response.ok) throw response.status;
           let loaded = await response.json()
-          this.stickieIds = loaded;
+          this.boardStickies = loaded;
           this.currBoard = path;
           this.$nextTick(() => {
-            let maxId = Math.max(...this.stickieIds.map(stickie => stickie.id));
+            let maxId = Math.max(...this.boardStickies.map(stickie => stickie.id));
             console.log(maxId);
-            let maxIdIndex = this.stickieIds.indexOf(this.stickieIds.filter(stickie => stickie.id === maxId)[0]);
+            let maxIdIndex = this.boardStickies.indexOf(this.boardStickies.filter(stickie => stickie.id === maxId)[0]);
             console.log(maxIdIndex)
             this.setFocus(maxIdIndex);
           })
-              
           setInterval(() => {
             this.saveBoard();
           }, 3000);
@@ -54,7 +53,7 @@ document.addEventListener('alpine:init', () => {
               headers: {
                 'Content-Type': 'application/json',
               },
-              body: JSON.stringify({stickies: this.stickieIds})
+              body: JSON.stringify({stickies: this.boardStickies})
             })
             this.changesMade = false;
             console.log("Board saved")
@@ -66,9 +65,9 @@ document.addEventListener('alpine:init', () => {
         },
          changeColor(stickie) { 
               let newColorIndex = stickie.color == this.colors.length - 1 ? 0 : stickie.color + 1;
-              for (let i = 0; i < this.stickieIds.length; i++) {
-                if (this.stickieIds[i].id === stickie.id) {
-                    this.stickieIds[i].color = newColorIndex;
+              for (let i = 0; i < this.boardStickies.length; i++) {
+                if (this.boardStickies[i].id === stickie.id) {
+                    this.boardStickies[i].color = newColorIndex;
                     this.changesMade = true;
                   break;
                 }
@@ -98,15 +97,13 @@ document.addEventListener('alpine:init', () => {
               window.location.pathname = '/new'
               break;
             case "deleteboard":
-              let path = window.location.pathname.substring(1);
-              window.location.pathname = '/delete/' + path
+              this.deleteBoard();
               break;
             case "help":
               stickie.content = stickie.content + "\n This is help text";
             default:
               break;
           }
-
         },
         setFocus(stickieIndex) {
           let StickieDiv = this.$refs.stickieContainer.querySelectorAll('div')[stickieIndex];
@@ -114,16 +111,16 @@ document.addEventListener('alpine:init', () => {
           StickieTextarea.focus()
           },
         addStickieFront(stickie) {
-          if (this.stickieIds.length === this.maxStickies) {
+          if (this.boardStickies.length === this.maxStickies) {
             alert("Maximum of " + this.maxStickies + " stickies reached")
-          } else if (this.stickieIds.indexOf(stickie) === 0) {
+          } else if (this.boardStickies.indexOf(stickie) === 0) {
               this.addStickie('front')
             }
           },
         addStickieEnd(stickie) {
-          if (this.stickieIds.length === this.maxStickies) {
+          if (this.boardStickies.length === this.maxStickies) {
             alert("Maximum of " + this.maxStickies + " stickies reached")
-          } else if (this.stickieIds.indexOf(stickie) === this.stickieIds.length - 1) {
+          } else if (this.boardStickies.indexOf(stickie) === this.boardStickies.length - 1) {
               this.addStickie('end')
             }
           },
@@ -142,35 +139,48 @@ document.addEventListener('alpine:init', () => {
           }
           let newStickie = await response.json()
           if (direction === "end") {
-            this.stickieIds.push(newStickie)
+            this.boardStickies.push(newStickie)
           } else {
-            this.stickieIds.unshift(newStickie)
+            this.boardStickies.unshift(newStickie)
           }
-          this.stickieIds.forEach(stickie => {
-            stickie.position = this.stickieIds.indexOf(stickie);
+          this.boardStickies.forEach(stickie => {
+            stickie.position = this.boardStickies.indexOf(stickie);
           })
           this.changesMade = true;
           this.$nextTick(() => {
-            this.setFocus(this.stickieIds.indexOf(newStickie));
+            this.setFocus(this.boardStickies.indexOf(newStickie));
           })},
 
         async deleteStickie(stickie) {
-          let deletedStickieIndex = this.stickieIds.indexOf(stickie)
-          let NewFocusIndex = deletedStickieIndex === 0 ? 1 : deletedStickieIndex - 1;
-            try {
-               await fetch('/api/stickie/delete/' + stickie.id, {
+          let deletedStickieIndex = this.boardStickies.indexOf(stickie)
+          //last stickie?
+          if (deletedStickieIndex === 0) {
+            if (confirm("Do you want to delete the board?")) {
+              this.deleteBoard()
+            } else {
+              return;
+            }
+          } else {
+            let NewFocusIndex = deletedStickieIndex === 0 ? 1 : deletedStickieIndex - 1;
+              try {
+                await fetch('/api/stickie/delete/' + stickie.id, {
                 method: 'DELETE'
               })
-              this.stickieIds.splice(this.stickieIds.indexOf(stickie), 1)
-              this.stickieIds.forEach(stickie => {
-                  stickie.position = this.stickieIds.indexOf(stickie);
-              })
-              this.changesMade = true;
-              this.setFocus(NewFocusIndex)
-            } 
-            catch (e) {
-              console.log(e)
-            } 
-          }
-        }))})
+                this.boardStickies.splice(this.boardStickies.indexOf(stickie), 1)
+                this.boardStickies.forEach(stickie => {
+                  stickie.position = this.boardStickies.indexOf(stickie);
+                })
+                this.changesMade = true;
+                this.setFocus(NewFocusIndex)
+              } 
+              catch (e) {
+                console.log(e)
+              } 
+            }
+          },
+        async deleteBoard() {
+          let path = window.location.pathname.substring(1);
+          window.location.pathname = '/delete/' + path
+        }
+      }))})
         

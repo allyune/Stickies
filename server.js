@@ -12,6 +12,8 @@ app.use(express.json());
 app.use(cookieParser());
 app.use('/api', api);
 
+
+//utils
 function generateUniqueId() {
     var currentDate = new Date();
     var timestamp = currentDate.getTime();
@@ -23,7 +25,7 @@ async function getBoards() {
     let boards = await db.query('SELECT uuid from boards');
     return boards.rows
 }
-
+//main
 const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[4][0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
   
 
