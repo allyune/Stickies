@@ -53,3 +53,11 @@ exports.deleteBoard = async (uuid, callback) => {
     console.log(err)
   }
 }
+
+exports.deleteEmpty = async (userId) => {
+  console.log("deleting empty boards")
+  let emptyBoards = await db.query("SELECT uuid FROM boards WHERE board_user = $1 AND (SELECT COUNT(id) FROM stickies WHERE board = uuid) <= 1 AND (SELECT COUNT(id) FROM stickies WHERE board = uuid AND content != '') = 0;", [userId]).then(res => res.rows.map(row => row.uuid));
+  console.log(emptyBoards)
+  await db.query("DELETE FROM stickies WHERE board IN (SELECT unnest($1::uuid[]))", [emptyBoards])
+  await db.query("DELETE FROM boards WHERE uuid IN (SELECT unnest($1::uuid[]))", [emptyBoards])
+}

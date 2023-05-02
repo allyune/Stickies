@@ -228,3 +228,8 @@ document.addEventListener("alpine:init", () => {
     },
   }));
 });
+
+//deleting empty boards for the specific user
+window.addEventListener("beforeunload", async (e) => {
+  await fetch('/api/board/delete-empty');
+});

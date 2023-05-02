@@ -10,6 +10,6 @@ router.get("/load/:uuid", boardController.loadBoard);
 
 router.post("/save", boardController.saveBoard);
 
-router.post('/new', boardController.newBoard)
+router.get('/delete-empty', boardController.deleteEmpty)
 
 module.exports = router;

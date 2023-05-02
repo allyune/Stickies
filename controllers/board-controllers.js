@@ -2,19 +2,6 @@ const boardModel = require("../models/board-model");
 const crypto = require('crypto');
 const utils = require('../utils/utils')
 
-exports.newBoard = async (req, res) => {
-  let uuid = req.params.uuid || crypto.randomUUID();
-  try {
-    if (!utils.uuidRegex.test(uuid)) {
-      throw new Error('Invalid UUID');
-    }
-    const result = await boardModel.newBoard(uuid);
-    res.status(200).send();
-  } catch (err) {
-    res.status(500).send({ err: err.message });
-  }
-}
-
 exports.saveBoard = async (req, res) => {
     try {
         boardModel.saveBoard(req.body.stickies)
@@ -54,12 +41,17 @@ exports.createBoard = async (req, res) => {
     try {
       let uuid = req.params.uuid || crypto.randomUUID();
       if (utils.uuidRegex.test(uuid)) {
+        let maybeRows = await boardModel.loadBoard(uuid);
+        if (maybeRows.length !== 0) {
+            res.status(460).send('Board already exists');
+        } else {
         await boardModel.newBoard(uuid, userId)
         res.set("Cache-Control", "no-cache, no-store, must-revalidate");
         res.set("Expires", "0");
         res.redirect(302, `/${uuid}`);
+       }
       } else {
-        res.send("Wrong board id format");
+        res.status(461).send('Wrong uuid format');
       }
     } catch (err) {
       console.error(err);
@@ -83,4 +75,18 @@ exports.deleteBoard = async (req, res) => {
         console.error(err);
         res.status(500).send({ err: err.message });
       }
+}
+
+exports.deleteEmpty = async (req, res) => {
+  let userId = req.cookies["userId"] || "";
+    if (userId.length === 0) {
+      res.status(200).send()
+    } else {
+    try{
+      await boardModel.deleteEmpty(userId)
+      res.status(200).send()
+    } catch (err) {
+      console.log(err)
+    }
+  }
 }
